@@ -6,12 +6,14 @@
 //
 
 import Foundation
+import Firebase
 import FirebaseAuth
 
 
 class AuthRepository {
     let auth = Auth.auth()
     @Published var user: User?
+    
 
 
     func loginAnonymously() async  throws -> FirebaseAuth.User{

@@ -6,44 +6,58 @@
 //
 
 import SwiftUI
+import Firebase
 import FirebaseAuth
 
-struct RegistrationView: View {
-    @ObservedObject var viewModel: AuthViewModel
-    @State private var email = ""
-    @State private var password = ""
-    @Environment(\.dismiss) private var dismiss
+struct RegisterView: View {
+    @EnvironmentObject var userViewModel: UserViewModel
+    @Binding var path: NavigationPath // NavigationPath für die Navigation
 
     var body: some View {
         VStack(spacing: 20) {
-            TextField("E-Mail", text: $email)
+            Text("Registrieren")
+                .font(.largeTitle)
+                .bold()
+
+            TextField("E-Mail", text: $userViewModel.email)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding(.horizontal)
 
-            SecureField("Passwort", text: $password)
+            SecureField("Passwort", text: $userViewModel.password)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding(.horizontal)
 
             Button(action: {
                 Task {
-                    await viewModel.register(email: email, password: password)
-                    dismiss()
+                    await userViewModel.register(email: userViewModel.email, password: userViewModel.password)
+                    if userViewModel.user != nil {
+                        path.append("HomeView")
+                    }
                 }
             }) {
-                Text("Register")
+                Text("Registrieren")
                     .frame(maxWidth: .infinity)
                     .padding()
                     .foregroundColor(.white)
-                    .background(Color.blue)
+                    .background(Color.orange)
                     .cornerRadius(8)
                     .shadow(radius: 5)
             }
             .padding(.horizontal)
+
+            Button(action: {
+                userViewModel.isRegister = false
+            }) {
+                Text("Bereits einen Account? Jetzt einloggen")
+                    .foregroundColor(.blue)
+            }
         }
         .padding()
     }
 }
 
 #Preview {
-    RegistrationView(viewModel: AuthViewModel(authRepository: AuthRepository()))
+    let previewViewModel = UserViewModel()
+    RegisterView(path: .constant(NavigationPath()))
+        .environmentObject(previewViewModel)
 }
