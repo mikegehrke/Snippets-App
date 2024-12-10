@@ -10,10 +10,10 @@ import FirebaseAuth
 
 struct LoginView: View {
     @EnvironmentObject var userViewModel: UserViewModel
-    @Binding var path: NavigationPath // Verwendet den NavigationPath für die Navigation
+    @Binding var path: NavigationPath // NavigationPath für die Navigation
     @State private var email: String = ""
     @State private var password: String = ""
-    @State private var errorMessage: String? // Für Fehlermeldungen
+    @State private var errorMessage: String? // Fehlermeldung anzeigen
 
     var body: some View {
         VStack(spacing: 20) {
@@ -22,40 +22,22 @@ struct LoginView: View {
                 .bold()
 
             // E-Mail Eingabefeld
-            VStack(alignment: .leading) {
-                TextField("E-Mail", text: $email)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(.horizontal)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5)
-                            .stroke(email.isValidEmail ? Color.green : Color.red, lineWidth: 1)
-                    )
-
-                if !email.isValidEmail && !email.isEmpty {
-                    Text("Ungültige E-Mail-Adresse.")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .padding(.horizontal)
-                }
-            }
+            TextField("E-Mail", text: $email)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding(.horizontal)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(email.isValidEmail ? Color.green : Color.red, lineWidth: 1)
+                )
 
             // Passwort Eingabefeld
-            VStack(alignment: .leading) {
-                SecureField("Passwort", text: $password)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(.horizontal)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5)
-                            .stroke(password.isValidPassword ? Color.green : Color.red, lineWidth: 1)
-                    )
-
-                if !password.isValidPassword && !password.isEmpty {
-                    Text("Passwort muss mindestens 6 Zeichen, eine Zahl und ein Sonderzeichen enthalten.")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .padding(.horizontal)
-                }
-            }
+            SecureField("Passwort", text: $password)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding(.horizontal)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(password.isValidPassword ? Color.green : Color.red, lineWidth: 1)
+                )
 
             // Fehlermeldung anzeigen
             if let errorMessage = errorMessage {
@@ -68,8 +50,8 @@ struct LoginView: View {
             Button(action: {
                 Task {
                     await userViewModel.login(email: email, password: password)
-                    if let user = userViewModel.user {
-                        path.append("HomeView")
+                    if userViewModel.user != nil {
+                        path.append("HomeView") // Navigation zur HomeView
                     } else {
                         errorMessage = userViewModel.errorMessage
                     }
@@ -83,15 +65,15 @@ struct LoginView: View {
                     .cornerRadius(8)
                     .shadow(radius: 5)
             }
-            .padding(.horizontal)
             .disabled(!email.isValidEmail || !password.isValidPassword)
+            .padding(.horizontal)
 
             // Anonym-Login-Button
             Button(action: {
                 Task {
                     await userViewModel.loginAnonymously()
-                    if let user = userViewModel.user {
-                        path.append("HomeView")
+                    if userViewModel.user != nil {
+                        path.append("HomeView") // Navigation zur HomeView
                     } else {
                         errorMessage = userViewModel.errorMessage
                     }
@@ -109,7 +91,7 @@ struct LoginView: View {
 
             // Button zur Registrierung
             Button(action: {
-                userViewModel.isRegister = true
+                userViewModel.isRegister = true // Wechsel zur RegisterView
             }) {
                 Text("Noch keinen Account? Jetzt registrieren")
                     .foregroundColor(.blue)
@@ -118,7 +100,6 @@ struct LoginView: View {
         .padding()
     }
 }
-
 #Preview {
     let previewViewModel = UserViewModel()
     LoginView(path: .constant(NavigationPath()))

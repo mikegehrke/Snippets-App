@@ -12,6 +12,9 @@ import FirebaseAuth
 struct RegisterView: View {
     @EnvironmentObject var userViewModel: UserViewModel
     @Binding var path: NavigationPath // NavigationPath für die Navigation
+    @State private var email: String = ""
+    @State private var password: String = ""
+    @State private var errorMessage: String? // Fehlermeldung anzeigen
 
     var body: some View {
         VStack(spacing: 20) {
@@ -19,19 +22,39 @@ struct RegisterView: View {
                 .font(.largeTitle)
                 .bold()
 
-            TextField("E-Mail", text: $userViewModel.email)
+            // E-Mail Eingabefeld
+            TextField("E-Mail", text: $email)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding(.horizontal)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(email.isValidEmail ? Color.green : Color.red, lineWidth: 1)
+                )
 
-            SecureField("Passwort", text: $userViewModel.password)
+            // Passwort Eingabefeld
+            SecureField("Passwort", text: $password)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding(.horizontal)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(password.isValidPassword ? Color.green : Color.red, lineWidth: 1)
+                )
 
+            // Fehlermeldung anzeigen
+            if let errorMessage = errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .font(.caption)
+            }
+
+            // Registrierung-Button
             Button(action: {
                 Task {
-                    await userViewModel.register(email: userViewModel.email, password: userViewModel.password)
+                    await userViewModel.register(email: email, password: password)
                     if userViewModel.user != nil {
-                        path.append("HomeView")
+                        path.append("HomeView") // Navigation zur HomeView
+                    } else {
+                        errorMessage = userViewModel.errorMessage
                     }
                 }
             }) {
@@ -39,14 +62,16 @@ struct RegisterView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .foregroundColor(.white)
-                    .background(Color.orange)
+                    .background(email.isValidEmail && password.isValidPassword ? Color.orange : Color.gray)
                     .cornerRadius(8)
                     .shadow(radius: 5)
             }
+            .disabled(!email.isValidEmail || !password.isValidPassword)
             .padding(.horizontal)
 
+            // Button zurück zum Login
             Button(action: {
-                userViewModel.isRegister = false
+                userViewModel.isRegister = false // Zurück zur LoginView
             }) {
                 Text("Bereits einen Account? Jetzt einloggen")
                     .foregroundColor(.blue)
@@ -55,7 +80,6 @@ struct RegisterView: View {
         .padding()
     }
 }
-
 #Preview {
     let previewViewModel = UserViewModel()
     RegisterView(path: .constant(NavigationPath()))
