@@ -13,6 +13,7 @@ struct LoginView: View {
     @Binding var path: NavigationPath // Verwendet den NavigationPath für die Navigation
     @State private var email: String = ""
     @State private var password: String = ""
+    @State private var errorMessage: String? // Für Fehlermeldungen
 
     var body: some View {
         VStack(spacing: 20) {
@@ -21,21 +22,56 @@ struct LoginView: View {
                 .bold()
 
             // E-Mail Eingabefeld
-            TextField("E-Mail", text: $email)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding(.horizontal)
+            VStack(alignment: .leading) {
+                TextField("E-Mail", text: $email)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(email.isValidEmail ? Color.green : Color.red, lineWidth: 1)
+                    )
+
+                if !email.isValidEmail && !email.isEmpty {
+                    Text("Ungültige E-Mail-Adresse.")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .padding(.horizontal)
+                }
+            }
 
             // Passwort Eingabefeld
-            SecureField("Passwort", text: $password)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding(.horizontal)
+            VStack(alignment: .leading) {
+                SecureField("Passwort", text: $password)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(password.isValidPassword ? Color.green : Color.red, lineWidth: 1)
+                    )
+
+                if !password.isValidPassword && !password.isEmpty {
+                    Text("Passwort muss mindestens 6 Zeichen, eine Zahl und ein Sonderzeichen enthalten.")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .padding(.horizontal)
+                }
+            }
+
+            // Fehlermeldung anzeigen
+            if let errorMessage = errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .font(.caption)
+            }
 
             // Login-Button
             Button(action: {
                 Task {
                     await userViewModel.login(email: email, password: password)
-                    if userViewModel.user != nil {
+                    if let user = userViewModel.user {
                         path.append("HomeView")
+                    } else {
+                        errorMessage = userViewModel.errorMessage
                     }
                 }
             }) {
@@ -43,18 +79,21 @@ struct LoginView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .foregroundColor(.white)
-                    .background(Color.blue)
+                    .background(email.isValidEmail && password.isValidPassword ? Color.blue : Color.gray)
                     .cornerRadius(8)
                     .shadow(radius: 5)
             }
             .padding(.horizontal)
+            .disabled(!email.isValidEmail || !password.isValidPassword)
 
             // Anonym-Login-Button
             Button(action: {
                 Task {
                     await userViewModel.loginAnonymously()
-                    if userViewModel.user != nil {
+                    if let user = userViewModel.user {
                         path.append("HomeView")
+                    } else {
+                        errorMessage = userViewModel.errorMessage
                     }
                 }
             }) {
