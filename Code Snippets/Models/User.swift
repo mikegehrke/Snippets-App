@@ -4,34 +4,27 @@
 //
 //  Created by Mike Gehrke on 10.12.24.
 //
-
-// User.swift
 import Foundation
-import Firebase
+import FirebaseFirestore
 import FirebaseAuth
 
-// Hauptbenutzer-Modell
-struct User: Identifiable, Codable {
-    var id: String
-    var email: String?
-    var registeredOn: Date?
-
-    init(id: String, email: String?, registeredOn: Date?) {
-        self.id = id
-        self.email = email
-        self.registeredOn = registeredOn
-    }
-}
-
-// Firestore-spezifisches Modell
+// User.swift
 struct FirestoreUser: Codable {
     var id: String
     var email: String?
     var registeredOn: Date?
+    var name: String?
+    var birthDate: Date?
+    var gender: String?
+    var occupation: String?
 
-    init(id: String, email: String?, registeredOn: Date?) {
+    init(id: String, email: String?, registeredOn: Date?, name: String? = nil, birthDate: Date? = nil, gender: String? = nil, occupation: String? = nil) {
         self.id = id
         self.email = email
         self.registeredOn = registeredOn
+        self.name = name
+        self.birthDate = birthDate
+        self.gender = gender
+        self.occupation = occupation
     }
 }

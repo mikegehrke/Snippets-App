@@ -20,13 +20,13 @@ class UserViewModel: ObservableObject {
 
     // MARK: - Funktionen
 
-    // Methode zum Wechseln zurück zum Login
+    /// Methode zum Wechseln zurück zum Login
     func switchToLogin() {
         isRegister = false
     }
 
     /// Registrierung eines neuen Benutzers
-    func register(email: String, password: String) async throws {
+    func register(email: String, password: String, name: String, birthDate: Date, gender: String, occupation: String) async throws {
         guard email.isValidEmail else {
             throw RegistrationError.invalidEmail
         }
@@ -38,7 +38,16 @@ class UserViewModel: ObservableObject {
             let id = result.user.uid
 
             // Benutzer speichern und laden
-            try await createUser(id: id, email: email)
+            let newUser = FirestoreUser(
+                id: id,
+                email: email,
+                registeredOn: Date(),
+                name: name,
+                birthDate: birthDate,
+                gender: gender,
+                occupation: occupation
+            )
+            try await firestoreRepository.createUser(user: newUser)
             try await fetchUser(id: id)
 
             self.path.append("HomeView") // Weiterleitung zur HomeView
@@ -75,19 +84,22 @@ class UserViewModel: ObservableObject {
             let id = result.user.uid
 
             // Benutzer speichern und laden
-            try await createUser(id: id, email: nil)
+            let anonymousUser = FirestoreUser(
+                id: id,
+                email: nil,
+                registeredOn: Date(),
+                name: nil,
+                birthDate: nil,
+                gender: nil,
+                occupation: nil
+            )
+            try await firestoreRepository.createUser(user: anonymousUser)
             try await fetchUser(id: id)
 
             self.path.append("HomeView")
         } catch {
             throw AuthError.anonymousLoginFailed(error.localizedDescription)
         }
-    }
-
-    /// Benutzer erstellen
-    func createUser(id: String, email: String?) async throws {
-        let newUser = FirestoreUser(id: id, email: email, registeredOn: Date())
-        try await firestoreRepository.createUser(id: id, email: email ?? "")
     }
 
     /// Benutzerinformationen aus Firestore laden
@@ -108,63 +120,6 @@ class UserViewModel: ObservableObject {
             self.path = NavigationPath()
         } catch {
             throw LogoutError.failedToLogout(error.localizedDescription)
-        }
-    }
-}
-
-// MARK: - Fehlerarten
-enum RegistrationError: Error, LocalizedError {
-    case invalidEmail
-    case invalidPassword
-    case authError(String)
-
-    var errorDescription: String? {
-        switch self {
-        case .invalidEmail:
-            return "Ungültige E-Mail-Adresse."
-        case .invalidPassword:
-            return "Passwortanforderungen nicht erfüllt."
-        case .authError(let message):
-            return "Registrierungsfehler: \(message)"
-        }
-    }
-}
-
-enum LoginError: Error, LocalizedError {
-    case invalidEmail
-    case invalidPassword
-    case authError(String)
-
-    var errorDescription: String? {
-        switch self {
-        case .invalidEmail:
-            return "Ungültige E-Mail-Adresse."
-        case .invalidPassword:
-            return "Passwort ungültig."
-        case .authError(let message):
-            return "Login-Fehler: \(message)"
-        }
-    }
-}
-
-enum AuthError: Error, LocalizedError {
-    case anonymousLoginFailed(String)
-
-    var errorDescription: String? {
-        switch self {
-        case .anonymousLoginFailed(let message):
-            return "Anonymer Login-Fehler: \(message)"
-        }
-    }
-}
-
-enum LogoutError: Error, LocalizedError {
-    case failedToLogout(String)
-
-    var errorDescription: String? {
-        switch self {
-        case .failedToLogout(let message):
-            return "Logout-Fehler: \(message)"
         }
     }
 }

@@ -4,14 +4,13 @@
 //
 //  Created by Mike Gehrke on 09.12.24.
 //
-
 import SwiftUI
 import Firebase
 import FirebaseAuth
 
 // MARK: - Home View
 struct HomeView: View {
-    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var userViewModel: UserViewModel
 
     var body: some View {
         VStack(spacing: 20) {
@@ -37,7 +36,14 @@ struct HomeView: View {
             .padding(.horizontal)
 
             Button(action: {
-                dismiss()
+                Task {
+                    do {
+                        try await userViewModel.logout()
+                        userViewModel.path = NavigationPath() // Navigation zurücksetzen
+                    } catch {
+                        userViewModel.errorMessage = "Logout fehlgeschlagen: \(error.localizedDescription)"
+                    }
+                }
             }) {
                 Text("Logout")
                     .frame(maxWidth: .infinity)
@@ -48,10 +54,19 @@ struct HomeView: View {
                     .shadow(radius: 5)
             }
             .padding(.horizontal)
+
+            if let errorMessage = userViewModel.errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .font(.caption)
+            }
         }
         .padding()
     }
 }
+
 #Preview {
+    let previewViewModel = UserViewModel()
     HomeView()
+        .environmentObject(previewViewModel)
 }

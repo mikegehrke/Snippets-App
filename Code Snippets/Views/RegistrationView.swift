@@ -6,15 +6,17 @@
 //
 import SwiftUI
 import FirebaseAuth
-import FirebaseFirestore
 
-// MARK: - Register View
 struct RegisterView: View {
     @EnvironmentObject var userViewModel: UserViewModel
     @Binding var path: NavigationPath
     @State private var email: String = ""
     @State private var password: String = ""
-    @State private var errorMessage: String? // Fehlermeldung anzeigen
+    @State private var name: String = ""
+    @State private var birthDate: Date = Date()
+    @State private var gender: String = ""
+    @State private var occupation: String = ""
+    @State private var errorMessage: String?
 
     var body: some View {
         VStack(spacing: 20) {
@@ -22,25 +24,20 @@ struct RegisterView: View {
                 .font(.largeTitle)
                 .bold()
 
-            // E-Mail Eingabefeld
+            // Eingabefelder
             TextField("E-Mail", text: $email)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding(.horizontal)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 5)
-                        .stroke(email.isValidEmail ? Color.green : Color.red, lineWidth: 1)
-                )
-
-            // Passwort Eingabefeld
+                .textFieldStyle(.roundedBorder)
             SecureField("Passwort", text: $password)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding(.horizontal)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 5)
-                        .stroke(password.isValidPassword ? Color.green : Color.red, lineWidth: 1)
-                )
+                .textFieldStyle(.roundedBorder)
+            TextField("Name", text: $name)
+                .textFieldStyle(.roundedBorder)
+            DatePicker("Geburtsdatum", selection: $birthDate, displayedComponents: .date)
+            TextField("Geschlecht", text: $gender)
+                .textFieldStyle(.roundedBorder)
+            TextField("Beruf", text: $occupation)
+                .textFieldStyle(.roundedBorder)
 
-            // Fehlermeldung anzeigen
+            // Fehlermeldung
             if let errorMessage = errorMessage {
                 Text(errorMessage)
                     .foregroundColor(.red)
@@ -48,30 +45,33 @@ struct RegisterView: View {
             }
 
             // Registrierung-Button
-            Button(action: {
+            Button("Registrieren") {
                 Task {
                     do {
-                        try await userViewModel.register(email: email, password: password)
-                        path.append("HomeView") // Weiterleitung zur HomeView
+                        try await userViewModel.register(
+                            email: email,
+                            password: password,
+                            name: name,
+                            birthDate: birthDate,
+                            gender: gender,
+                            occupation: occupation
+                        )
+                        path.append("HomeView")
                     } catch {
                         errorMessage = error.localizedDescription
                     }
                 }
-            }) {
-                Text("Registrieren")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .foregroundColor(.white)
-                    .background(email.isValidEmail && password.isValidPassword ? Color.orange : Color.gray)
-                    .cornerRadius(8)
-                    .shadow(radius: 5)
             }
-            .disabled(!email.isValidEmail || !password.isValidPassword)
-            .padding(.horizontal)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .foregroundColor(.white)
+            .background(email.isValidEmail && password.isValidPassword ? Color.blue : Color.gray)
+            .cornerRadius(8)
+            .disabled(email.isEmpty || password.isEmpty)
 
-            // Button zurück zum Login
+            // Zurück zum Login
             Button(action: {
-                userViewModel.isRegister = false
+                userViewModel.switchToLogin()
             }) {
                 Text("Bereits einen Account? Jetzt einloggen")
                     .foregroundColor(.blue)
