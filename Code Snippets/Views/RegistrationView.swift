@@ -4,14 +4,14 @@
 //
 //  Created by Mike Gehrke on 10.12.24.
 //
-
 import SwiftUI
-import Firebase
 import FirebaseAuth
+import FirebaseFirestore
 
+// MARK: - Register View
 struct RegisterView: View {
     @EnvironmentObject var userViewModel: UserViewModel
-    @Binding var path: NavigationPath // NavigationPath für die Navigation
+    @Binding var path: NavigationPath
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var errorMessage: String? // Fehlermeldung anzeigen
@@ -50,11 +50,11 @@ struct RegisterView: View {
             // Registrierung-Button
             Button(action: {
                 Task {
-                    await userViewModel.register(email: email, password: password)
-                    if userViewModel.user != nil {
-                        path.append("HomeView") // Navigation zur HomeView
-                    } else {
-                        errorMessage = userViewModel.errorMessage
+                    do {
+                        try await userViewModel.register(email: email, password: password)
+                        path.append("HomeView") // Weiterleitung zur HomeView
+                    } catch {
+                        errorMessage = error.localizedDescription
                     }
                 }
             }) {
@@ -71,7 +71,7 @@ struct RegisterView: View {
 
             // Button zurück zum Login
             Button(action: {
-                userViewModel.isRegister = false // Zurück zur LoginView
+                userViewModel.isRegister = false
             }) {
                 Text("Bereits einen Account? Jetzt einloggen")
                     .foregroundColor(.blue)

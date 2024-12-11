@@ -8,9 +8,10 @@
 import SwiftUI
 import FirebaseAuth
 
+// MARK: - Login View
 struct LoginView: View {
     @EnvironmentObject var userViewModel: UserViewModel
-    @Binding var path: NavigationPath // NavigationPath für die Navigation
+    @Binding var path: NavigationPath
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var errorMessage: String? // Fehlermeldung anzeigen
@@ -49,11 +50,11 @@ struct LoginView: View {
             // Login-Button
             Button(action: {
                 Task {
-                    await userViewModel.login(email: email, password: password)
-                    if userViewModel.user != nil {
+                    do {
+                        try await userViewModel.login(email: email, password: password)
                         path.append("HomeView") // Navigation zur HomeView
-                    } else {
-                        errorMessage = userViewModel.errorMessage
+                    } catch {
+                        errorMessage = "Login fehlgeschlagen: \(error.localizedDescription)"
                     }
                 }
             }) {
@@ -71,11 +72,11 @@ struct LoginView: View {
             // Anonym-Login-Button
             Button(action: {
                 Task {
-                    await userViewModel.loginAnonymously()
-                    if userViewModel.user != nil {
+                    do {
+                        try await userViewModel.loginAnonymously()
                         path.append("HomeView") // Navigation zur HomeView
-                    } else {
-                        errorMessage = userViewModel.errorMessage
+                    } catch {
+                        errorMessage = "Anonymes Login fehlgeschlagen: \(error.localizedDescription)"
                     }
                 }
             }) {
@@ -91,7 +92,7 @@ struct LoginView: View {
 
             // Button zur Registrierung
             Button(action: {
-                userViewModel.isRegister = true // Wechsel zur RegisterView
+                userViewModel.isRegister = true
             }) {
                 Text("Noch keinen Account? Jetzt registrieren")
                     .foregroundColor(.blue)
@@ -100,6 +101,7 @@ struct LoginView: View {
         .padding()
     }
 }
+
 #Preview {
     let previewViewModel = UserViewModel()
     LoginView(path: .constant(NavigationPath()))

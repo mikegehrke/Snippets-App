@@ -8,11 +8,12 @@
 import SwiftUI
 import FirebaseAuth
 
+// MARK: - Auth View
 struct AuthView: View {
     @EnvironmentObject var userViewModel: UserViewModel
 
     var body: some View {
-        NavigationStack(path: $userViewModel.path) { // Pfad ist NavigationPath
+        NavigationStack(path: $userViewModel.path) {
             VStack {
                 if userViewModel.isRegister {
                     RegisterView(path: $userViewModel.path)

@@ -9,8 +9,10 @@ import SwiftUI
 import Firebase
 import FirebaseAuth
 
+// MARK: - Home View
 struct HomeView: View {
     @Environment(\.dismiss) private var dismiss
+
     var body: some View {
         VStack(spacing: 20) {
             Text("Welcome to Lookout!")
@@ -50,7 +52,6 @@ struct HomeView: View {
         .padding()
     }
 }
-
 #Preview {
     HomeView()
 }

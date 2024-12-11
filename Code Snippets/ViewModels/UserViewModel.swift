@@ -5,86 +5,166 @@
 //  Created by Mike Gehrke on 10.12.24.
 //
 
+// UserViewModel.swift
 import Foundation
 import FirebaseAuth
 import SwiftUI
 
+@MainActor
 class UserViewModel: ObservableObject {
-    @Published var user: FirebaseAuth.User?
-    @Published var email: String = ""
-    @Published var password: String = ""
-    @Published var isRegister: Bool = false
-    @Published var path = NavigationPath() // NavigationPath für NavigationStack
-    @Published var errorMessage: String? // Fehlermeldungen
+    @Published var user: FirestoreUser? // Aktueller Benutzer als FirestoreUser
+    @Published var errorMessage: String? // Fehleranzeige
+    @Published var path = NavigationPath() // Navigation
+    private let firestoreRepository = FirestoreRepository() // Firestore-Zugriff
+    @Published var isRegister: Bool = false // Steuerung für Login/Registrierung
 
-    var isEmailValid: Bool {
-        email.isValidEmail
+    // MARK: - Funktionen
+
+    // Methode zum Wechseln zurück zum Login
+    func switchToLogin() {
+        isRegister = false
     }
 
-    var isPasswordValid: Bool {
-        password.isValidPassword &&
-        password.containsSpecialCharacter &&
-        password.containsNumber &&
-        password.containsUppercase
-    }
-
-    func loginAnonymously() async {
-        do {
-            let result = try await Auth.auth().signInAnonymously()
-            self.user = result.user
-            self.path.append("HomeView")
-        } catch {
-            self.errorMessage = "Anonymes Login fehlgeschlagen: \(error.localizedDescription)"
+    /// Registrierung eines neuen Benutzers
+    func register(email: String, password: String) async throws {
+        guard email.isValidEmail else {
+            throw RegistrationError.invalidEmail
         }
-    }
-
-    func register(email: String, password: String) async {
-        guard isEmailValid else {
-            self.errorMessage = "Ungültige E-Mail-Adresse."
-            return
+        guard password.isValidPassword else {
+            throw RegistrationError.invalidPassword
         }
-
-        guard isPasswordValid else {
-            self.errorMessage = "Passwort muss mindestens 6 Zeichen, eine Zahl, ein Sonderzeichen und einen Großbuchstaben enthalten."
-            return
-        }
-
         do {
             let result = try await Auth.auth().createUser(withEmail: email, password: password)
-            self.user = result.user
-            self.path.append("HomeView")
+            let id = result.user.uid
+
+            // Benutzer speichern und laden
+            try await createUser(id: id, email: email)
+            try await fetchUser(id: id)
+
+            self.path.append("HomeView") // Weiterleitung zur HomeView
         } catch {
-            self.errorMessage = "Registrierung fehlgeschlagen: \(error.localizedDescription)"
+            throw RegistrationError.authError(error.localizedDescription)
         }
     }
 
-    func login(email: String, password: String) async {
-        guard isEmailValid else {
-            self.errorMessage = "Ungültige E-Mail-Adresse."
-            return
+    /// Login eines vorhandenen Benutzers
+    func login(email: String, password: String) async throws {
+        guard email.isValidEmail else {
+            throw LoginError.invalidEmail
         }
-
-        guard isPasswordValid else {
-            self.errorMessage = "Passwort ungültig."
-            return
+        guard password.isValidPassword else {
+            throw LoginError.invalidPassword
         }
-
         do {
             let result = try await Auth.auth().signIn(withEmail: email, password: password)
-            self.user = result.user
-            self.path.append("HomeView")
+            let id = result.user.uid
+
+            // Benutzerinformationen laden
+            try await fetchUser(id: id)
+
+            self.path.append("HomeView") // Weiterleitung zur HomeView
         } catch {
-            self.errorMessage = "Login fehlgeschlagen: \(error.localizedDescription)"
+            throw LoginError.authError(error.localizedDescription)
         }
     }
 
-    func logout() async {
+    /// Anonyme Anmeldung
+    func loginAnonymously() async throws {
+        do {
+            let result = try await Auth.auth().signInAnonymously()
+            let id = result.user.uid
+
+            // Benutzer speichern und laden
+            try await createUser(id: id, email: nil)
+            try await fetchUser(id: id)
+
+            self.path.append("HomeView")
+        } catch {
+            throw AuthError.anonymousLoginFailed(error.localizedDescription)
+        }
+    }
+
+    /// Benutzer erstellen
+    func createUser(id: String, email: String?) async throws {
+        let newUser = FirestoreUser(id: id, email: email, registeredOn: Date())
+        try await firestoreRepository.createUser(id: id, email: email ?? "")
+    }
+
+    /// Benutzerinformationen aus Firestore laden
+    func fetchUser(id: String) async throws {
+        do {
+            let fetchedUser = try await firestoreRepository.fetchUser(id: id)
+            self.user = fetchedUser
+        } catch {
+            throw LoginError.authError("Fehler beim Laden des Benutzers: \(error.localizedDescription)")
+        }
+    }
+
+    /// Logout
+    func logout() async throws {
         do {
             try Auth.auth().signOut()
             self.user = nil
             self.path = NavigationPath()
         } catch {
-            self.errorMessage = "Logout fehlgeschlagen: \(error.localizedDescription)"
+            throw LogoutError.failedToLogout(error.localizedDescription)
+        }
+    }
+}
+
+// MARK: - Fehlerarten
+enum RegistrationError: Error, LocalizedError {
+    case invalidEmail
+    case invalidPassword
+    case authError(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidEmail:
+            return "Ungültige E-Mail-Adresse."
+        case .invalidPassword:
+            return "Passwortanforderungen nicht erfüllt."
+        case .authError(let message):
+            return "Registrierungsfehler: \(message)"
+        }
+    }
+}
+
+enum LoginError: Error, LocalizedError {
+    case invalidEmail
+    case invalidPassword
+    case authError(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidEmail:
+            return "Ungültige E-Mail-Adresse."
+        case .invalidPassword:
+            return "Passwort ungültig."
+        case .authError(let message):
+            return "Login-Fehler: \(message)"
+        }
+    }
+}
+
+enum AuthError: Error, LocalizedError {
+    case anonymousLoginFailed(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .anonymousLoginFailed(let message):
+            return "Anonymer Login-Fehler: \(message)"
+        }
+    }
+}
+
+enum LogoutError: Error, LocalizedError {
+    case failedToLogout(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .failedToLogout(let message):
+            return "Logout-Fehler: \(message)"
         }
     }
 }
