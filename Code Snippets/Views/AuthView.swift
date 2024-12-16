@@ -5,12 +5,15 @@
 //  Created by Mike Gehrke on 10.12.24.
 //
 
+// AuthView.swift
 import SwiftUI
 import FirebaseAuth
 
-// MARK: - Auth View
 struct AuthView: View {
     @EnvironmentObject var userViewModel: UserViewModel
+    @EnvironmentObject var homeViewModel: HomeViewModel
+    @EnvironmentObject var snippetViewModel: SnippetViewModel
+    @EnvironmentObject var categoryViewModel: CategoryViewModel
 
     var body: some View {
         NavigationStack(path: $userViewModel.path) {
@@ -23,7 +26,9 @@ struct AuthView: View {
             }
             .navigationDestination(for: String.self) { destination in
                 if destination == "HomeView" {
-                    HomeView()
+                    TabBarView()
+                        .environmentObject(userViewModel)
+                        .environmentObject(homeViewModel)
                 } else {
                     Text("Unbekanntes Ziel")
                         .font(.headline)
@@ -34,7 +39,15 @@ struct AuthView: View {
 }
 
 #Preview {
-    let previewViewModel = UserViewModel()
+    let previewUserViewModel = UserViewModel()
+    let previewHomeViewModel = HomeViewModel()
+    let previewSnippetViewModel = SnippetViewModel()
+    let previewCategoryViewModel = CategoryViewModel()
+
     AuthView()
-        .environmentObject(previewViewModel)
+        .environmentObject(previewUserViewModel)
+        .environmentObject(previewHomeViewModel)
+        .environmentObject(previewSnippetViewModel)
+        .environmentObject(previewCategoryViewModel)
+
 }

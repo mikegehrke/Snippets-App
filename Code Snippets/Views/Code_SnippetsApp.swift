@@ -1,10 +1,12 @@
 import SwiftUI
 import Firebase
-import FirebaseAuth
 
 @main
 struct Code_SnippetsApp: App {
     @StateObject private var userViewModel = UserViewModel()
+    @StateObject private var homeViewModel = HomeViewModel()
+    @StateObject var snippetViewModel = SnippetViewModel()
+    @StateObject var categoryViewModel = CategoryViewModel()
 
     init() {
         FirebaseApp.configure()
@@ -14,6 +16,7 @@ struct Code_SnippetsApp: App {
         WindowGroup {
             AuthView()
                 .environmentObject(userViewModel)
+                .environmentObject(homeViewModel)
         }
     }
 }

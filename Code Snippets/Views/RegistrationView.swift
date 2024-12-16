@@ -24,7 +24,6 @@ struct RegisterView: View {
                 .font(.largeTitle)
                 .bold()
 
-            // Eingabefelder
             TextField("E-Mail", text: $email)
                 .textFieldStyle(.roundedBorder)
             SecureField("Passwort", text: $password)
@@ -37,14 +36,12 @@ struct RegisterView: View {
             TextField("Beruf", text: $occupation)
                 .textFieldStyle(.roundedBorder)
 
-            // Fehlermeldung
             if let errorMessage = errorMessage {
                 Text(errorMessage)
                     .foregroundColor(.red)
                     .font(.caption)
             }
 
-            // Registrierung-Button
             Button("Registrieren") {
                 Task {
                     do {
@@ -69,7 +66,6 @@ struct RegisterView: View {
             .cornerRadius(8)
             .disabled(email.isEmpty || password.isEmpty)
 
-            // Zurück zum Login
             Button(action: {
                 userViewModel.switchToLogin()
             }) {

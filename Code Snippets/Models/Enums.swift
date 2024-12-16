@@ -63,3 +63,4 @@ enum LogoutError: Error, LocalizedError {
         }
     }
 }
+

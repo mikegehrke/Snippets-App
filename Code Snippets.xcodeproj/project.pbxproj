@@ -10,11 +10,13 @@
 		8C6DCF972D071A490064CD75 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 8C6DCF962D071A490064CD75 /* FirebaseAuth */; };
 		8C6DCF9F2D071A490064CD75 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 8C6DCF9E2D071A490064CD75 /* FirebaseFirestore */; };
 		8C6DCFA92D071ACA0064CD75 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8C6DCFA82D071AC90064CD75 /* GoogleService-Info.plist */; };
+		8CED83032D10346900F53985 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 8CED83022D10346900F53985 /* README.md */; };
 		CE75F2922C8B152D001AD0A3 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE75F2912C8B152D001AD0A3 /* Preview Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		8C6DCFA82D071AC90064CD75 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		8CED83022D10346900F53985 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		CE75F2872C8B152C001AD0A3 /* Code Snippets.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Code Snippets.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE75F2912C8B152D001AD0A3 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -71,6 +73,7 @@
 		CE75F2902C8B152D001AD0A3 /* Preview Content */ = {
 			isa = PBXGroup;
 			children = (
+				8CED83022D10346900F53985 /* README.md */,
 				CE75F2912C8B152D001AD0A3 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
@@ -144,6 +147,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE75F2922C8B152D001AD0A3 /* Preview Assets.xcassets in Resources */,
+				8CED83032D10346900F53985 /* README.md in Resources */,
 				8C6DCFA92D071ACA0064CD75 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
